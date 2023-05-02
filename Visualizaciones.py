@@ -69,34 +69,40 @@ trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210],
 data_cardiaca.insert(5,"trestbps_group", trestbps_discrt)
 
 #Cp
-CP = px.histogram(data_cardiaca, x = "cp", color = "cardiac", text_auto='.2f', barnorm= "percent",
+CP = px.histogram(data_cardiaca, x = "cp", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"cp":["Angina normal","Angina atipica","No angina","Asintomatico"],
                                     "cardiac":[True,False]},
-                    color_discrete_map={True:"#F58518", False:"#BAB0AC"},
+                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
                     title="Relación dolor de pecho y enfermedad cardiaca")
 CP.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Dolor de Pecho",
-                  yaxis_title = "Conteo(Porcentaje)")
+                  yaxis_title = "Conteo(Porcentaje)",
+                  title_x = 0.5,
+                  font = dict(size = 14))
 CP.update_layout({'plot_bgcolor': 'white'})
 #Presion arterial
-PA = px.histogram(data_cardiaca, x = "trestbps_group", color = "cardiac", text_auto='.2f', barnorm= "percent",
+PA = px.histogram(data_cardiaca, x = "trestbps_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"trestbps_group":["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"],
                                     "cardiac":[True,False]},
-                                    color_discrete_map={True:"#F58518", False:"#BAB0AC"},
+                                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
                                     title="Relación presión arterial en reposo y enfermedad cardiaca")
 PA.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Presión Arterial",
-                  yaxis_title = "Conteo(Porcentaje)")
+                  yaxis_title = "Conteo(Porcentaje)",
+                  title_x = 0.5,
+                  font = dict(size = 14))
 PA.update_layout({'plot_bgcolor': 'white'})
 #Colesterol
-Cole = px.histogram(data_cardiaca, x = "chol_group", color = "cardiac", text_auto='.2f', barnorm= "percent",
+Cole = px.histogram(data_cardiaca, x = "chol_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"chol_group":["normal","alto","muy alto"],
                                     "cardiac":[True,False]},
-                    color_discrete_map={True:"#F58518", False:"#BAB0AC"},
+                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
                     title="Relación nivel de colesterol y enfermedad cardiaca")
 Cole.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Nivel de Colesterol",
-                  yaxis_title = "Conteo(Porcentaje)")
+                  yaxis_title = "Conteo(Porcentaje)",
+                  title_x = 0.5,
+                  font = dict(size = 14))
 Cole.update_layout({'plot_bgcolor': 'white'})
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -112,7 +118,7 @@ app.layout = html.Div(
                     children="Arteriopatía Coronaria. Una enfermedad cardiaca",style={'textAlign':'center'}
                 ),
                 html.P(
-                    children= "Por medio de los siguientes graficos se puede intuir el efecto que tiene algunas variables sobre padecer o no este tipo de enfermedad",
+                    children= "Por medio de los siguientes graficos se puede intuir el efecto que tienen algunas variables sobre padecer o no este tipo de enfermedad cardiaca",
                     style={'textAlign':'center'}
                 ),
             ],style={'backgroundColor' : "black",'color':'white'}),
