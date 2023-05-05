@@ -63,6 +63,7 @@ data_cardiaca = data_cardiaca.drop('num', axis=1)
 data_cardiaca = data_cardiaca.drop('thalac', axis=1)
 data_cardiaca = data_cardiaca.drop('oldpeak', axis=1)
 
+#data_cardiaca.to_csv("datoscat.csv", index = False)
 
 print(data_cardiaca.head())
 print(data_cardiaca.columns)
@@ -216,7 +217,6 @@ def process_data(datosPrueba, pModelo):
         
         pp = inferencia.query(["cardiac"], evidence={"sex": sex, "age_group":age, "chol_group": chol, "fbs": fbs, "exang": exang, "cp": cp, "trestbps_group": tbs, "restecg": restecg, "slope": pslope, "thal": thal, "ca": ca})
         pverdadero= pp.values[1]
-        print(pverdadero)
        
         
         if (cardiac== True and pverdadero > 0.5):
@@ -235,5 +235,59 @@ def process_data(datosPrueba, pModelo):
 ResutadosModeloInicial= process_data(data_cardiaca_prueba, model)
 ResutadosModeloK2= process_data(data_cardiaca_prueba, estimated_modelh)
 ResutadosModeloBIC= process_data(data_cardiaca_prueba, estimated_modelh)
+
+
+#Probar con modelo de un companero
+dataCOM = pd.read_csv("Analitica computacional/Proyecto 2 Enfermedades cardiacas/DatosSantiago.csv")
+dataCOM = dataCOM.tail(30)
+
+from pgmpy.readwrite import BIFReader
+reader = BIFReader("Analitica computacional/Proyecto 2 Enfermedades cardiacas/OriginalSantiago.bif")
+modeloCOM = reader.get_model()
+
+validacion_nodos = modeloCOM.get_cpds("cp").state_names["cp"]
+print(validacion_nodos)
+print(dataCOM.dtypes)
+
+
+
+def process_dataCOM(datosPrueba, pModelo):
+    inferencia = VariableElimination(pModelo)
+    VP=0
+    FP=0
+    FN=0
+    VN=0
+    
+    for index, row in datosPrueba.iterrows():
+        cardiac=row['heartdis']
+        sex = row['sex']
+        age = row['age']
+        exang = row['exang']
+        cp = row['cp']
+        tbs = row["trestbps"]
+        pslope = row["slope"]
+        thal = row["thal"]
+        ca = row["ca"]
+        thalach = row["thalach"]
+        oldpeak = row["oldpeak"]
+        
+        pp = inferencia.query(["heartdis"], evidence={"sex": sex, "age":age, "exang": exang, "cp": cp, "trestbps": tbs, "slope": pslope, "thal": thal, "ca": ca, "thalach":thalach,"oldpeak":oldpeak})
+        pverdadero= pp.values[1]
+       
+        
+        if (cardiac== True and pverdadero > 0.5):
+            VP= VP+1
+           
+        if (cardiac== False and pverdadero > 0.5):
+            FP= FP+1
+         
+        if (cardiac== True and pverdadero <= 0.5):
+            FN= FN+1
+            
+        if (cardiac== False and pverdadero <= 0.5):
+            VN= VN+1
+    return VP,FP,FN,VN
+ResutadosModeloCOM= process_dataCOM(dataCOM, modeloCOM)
+print(ResutadosModeloCOM)
 
 
