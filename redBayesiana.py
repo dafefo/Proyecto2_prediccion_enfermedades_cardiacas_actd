@@ -45,15 +45,15 @@ estadisticas = data_cardiaca.describe()
 data_cardiaca["cardiac"]=np.where(data_cardiaca["num"]>0,True,False)
 
 #Se crea una avraible categorica de la edad. 
-edad_discrt = pd.cut(data_cardiaca["age"],bins = [0,50,100], labels = ["Joven","Mayor"])
+edad_discrt = pd.cut(data_cardiaca["age"],bins = [0,50,100], labels = [0,1])
 data_cardiaca.insert(1,"age_group", edad_discrt)
 
 #Se crea una variable categorica para el colesterol
-chol_discrt = pd.cut(data_cardiaca["chol"],bins=[0,200,240,600], labels = ["normal","alto","muy alto"])
+chol_discrt = pd.cut(data_cardiaca["chol"],bins=[0,200,240,600], labels = [1,2,3])
 data_cardiaca.insert(6,"chol_group",chol_discrt)
 
 #Se crea una varibale categorica para la presion sanguinea en reposo
-trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"])
+trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=[1,2,3,4,5])
 data_cardiaca.insert(5,"trestbps_group", trestbps_discrt)
 
 data_cardiaca = data_cardiaca.drop('age', axis=1)
