@@ -97,7 +97,7 @@ df["cp"]= pd.cut(df["cp"], bins=[0,1,2,3,4],labels=["Angina normal","Angina atip
 CP = px.histogram(df, x = "cp", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"cp":["Angina normal","Angina atipica","No angina","Asintomatico"],
                                     "cardiac":[True,False]},
-                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
+                    color_discrete_map={True:"#E99220", False:"#BAB0AC"},
                     title="Relación dolor de pecho y enfermedad cardiaca")
 CP.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Dolor de Pecho",
@@ -109,7 +109,7 @@ CP.update_layout({'plot_bgcolor': 'white'})
 PA = px.histogram(df, x = "trestbps_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"trestbps_group":["normal","elevada","presionarterialnivel1","presionarterialnivel2","crisis"],
                                     "cardiac":[True,False]},
-                                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
+                                    color_discrete_map={True:"#E99220", False:"#BAB0AC"},
                                     title="Relación presión arterial en reposo y enfermedad cardiaca")
 PA.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Presión Arterial",
@@ -121,7 +121,7 @@ PA.update_layout({'plot_bgcolor': 'white'})
 Cole = px.histogram(df, x = "chol_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"chol_group":["normal","alto","muyalto"],
                                     "cardiac":[True,False]},
-                    color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
+                    color_discrete_map={True:"#E99220", False:"#BAB0AC"},
                     title="Relación nivel de colesterol y enfermedad cardiaca")
 Cole.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Nivel de Colesterol",
@@ -130,7 +130,7 @@ Cole.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   font = dict(size = 14))
 Cole.update_layout({'plot_bgcolor': 'white'})
 
-dash.register_page(__name__, path='/', name='Analisis Descriptivo') # '/' is home page
+dash.register_page(__name__, path='/', name='Análisis Descriptivo') # '/' is home page
 
 # page 1 data
 

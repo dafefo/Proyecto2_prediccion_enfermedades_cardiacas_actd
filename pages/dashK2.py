@@ -16,7 +16,7 @@ from pgmpy.readwrite import XMLBIFReader
 #reader = BIFReader("C:/Users/baka/Desktop/analitica proyecto 2 local/modeloBIC.bif")
 #modelo = reader.get_model()
 
-reader = XMLBIFReader("Analitica computacional/Proyecto 2 Enfermedades cardiacas/modeloK2.xml")
+reader = XMLBIFReader("modeloK2.xml")
 model = reader.get_model()
 
 #Apertura datos Christer
