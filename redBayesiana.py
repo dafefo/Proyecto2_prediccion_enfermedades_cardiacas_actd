@@ -45,15 +45,15 @@ estadisticas = data_cardiaca.describe()
 data_cardiaca["cardiac"]=np.where(data_cardiaca["num"]>0,True,False)
 
 #Se crea una avraible categorica de la edad. 
-edad_discrt = pd.cut(data_cardiaca["age"],bins = [0,50,100], labels = [0,1])
+edad_discrt = pd.cut(data_cardiaca["age"],bins = [0,50,100], labels = ["Joven","Mayor"])
 data_cardiaca.insert(1,"age_group", edad_discrt)
 
 #Se crea una variable categorica para el colesterol
-chol_discrt = pd.cut(data_cardiaca["chol"],bins=[0,200,240,600], labels = [1,2,3])
+chol_discrt = pd.cut(data_cardiaca["chol"],bins=[0,200,240,600], labels = ["normal","alto","muy alto"])
 data_cardiaca.insert(6,"chol_group",chol_discrt)
 
 #Se crea una varibale categorica para la presion sanguinea en reposo
-trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=[1,2,3,4,5])
+trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"])
 data_cardiaca.insert(5,"trestbps_group", trestbps_discrt)
 
 data_cardiaca = data_cardiaca.drop('age', axis=1)
@@ -145,6 +145,7 @@ esth = HillClimbSearch(data=data_cardiaca)
 estimated_modelh = esth.estimate(
     scoring_method=scoring_method, max_indegree=20, max_iter=int(20000), black_list=(bl)
 )
+modeloK2p=estimated_modelh
 print(estimated_modelh)
 print(estimated_modelh.nodes())
 print(estimated_modelh.edges())
@@ -160,6 +161,7 @@ esth = HillClimbSearch(data=data_cardiaca)
 estimated_modelh = esth.estimate(
     scoring_method=scoring_method, max_indegree=20, max_iter=int(20000), black_list=(bl)
 )
+modeloBICp=estimated_modelh
 print(estimated_modelh)
 print(estimated_modelh.nodes())
 print(estimated_modelh.edges())
@@ -238,18 +240,18 @@ ResutadosModeloBIC= process_data(data_cardiaca_prueba, estimated_modelh)
 
 
 #Probar con modelo de un companero
-dataCOM = pd.read_csv("Analitica computacional/Proyecto 2 Enfermedades cardiacas/DatosSantiago.csv")
+dataCOM = pd.read_csv("DatosSantiago.csv")
 dataCOM = dataCOM.tail(30)
 
 from pgmpy.readwrite import BIFReader
-reader = BIFReader("Analitica computacional/Proyecto 2 Enfermedades cardiacas/OriginalSantiago.bif")
+reader = BIFReader("OriginalSantiago.bif")
 modeloCOM = reader.get_model()
 
 validacion_nodos = modeloCOM.get_cpds("cp").state_names["cp"]
 print(validacion_nodos)
 print(dataCOM.dtypes)
-
-
+print(modeloCOM.edges())
+print(modeloCOM.nodes())
 
 def process_dataCOM(datosPrueba, pModelo):
     inferencia = VariableElimination(pModelo)
@@ -259,35 +261,81 @@ def process_dataCOM(datosPrueba, pModelo):
     VN=0
     
     for index, row in datosPrueba.iterrows():
-        cardiac=row['heartdis']
-        sex = row['sex']
-        age = row['age']
-        exang = row['exang']
-        cp = row['cp']
-        tbs = row["trestbps"]
-        pslope = row["slope"]
-        thal = row["thal"]
-        ca = row["ca"]
-        thalach = row["thalach"]
-        oldpeak = row["oldpeak"]
+        cardiac=str(row['heartdis'])
+        sex = str(row['sex'])
+        age = str(row['age'])
+        exang = str(row['exang'])
+        cp = str(row['cp'])
+        tbs = str(row["trestbps"])
+        pslope = str(row["slope"])
+        thal = str(row["thal"])
+        ca = str(row["ca"])
+        thalach = str(row["thalach"])
+        oldpeak = str(row["oldpeak"])
         
         pp = inferencia.query(["heartdis"], evidence={"sex": sex, "age":age, "exang": exang, "cp": cp, "trestbps": tbs, "slope": pslope, "thal": thal, "ca": ca, "thalach":thalach,"oldpeak":oldpeak})
         pverdadero= pp.values[1]
        
         
-        if (cardiac== True and pverdadero > 0.5):
+        if (cardiac== '1' and pverdadero > 0.5):
             VP= VP+1
            
-        if (cardiac== False and pverdadero > 0.5):
+        if (cardiac== '0' and pverdadero > 0.5):
             FP= FP+1
          
-        if (cardiac== True and pverdadero <= 0.5):
+        if (cardiac== '1' and pverdadero <= 0.5):
             FN= FN+1
             
-        if (cardiac== False and pverdadero <= 0.5):
+        if (cardiac== '0' and pverdadero <= 0.5):
             VN= VN+1
     return VP,FP,FN,VN
 ResutadosModeloCOM= process_dataCOM(dataCOM, modeloCOM)
 print(ResutadosModeloCOM)
 
+
+#############################################################################
+#####################PRUEBAS DE PUNTAJES BIC Y K2 PARA LOS MODELOS###########
+#####################YA ENTRENADOS###########################################
+
+##### MODELO K2##########################
+
+scoring_method = K2Score(data=data_cardiaca_prueba)
+#print(model)
+#print(model.nodes())
+#print(model.edges())
+k2ModelokOriginal= scoring_method.score(model)
+print("K2 modelo original:"+ str(k2ModelokOriginal) )
+
+scoring_method = BicScore(data=data_cardiaca_prueba)
+BICModeloOriginal= scoring_method.score(model)
+print("BIC modelo original:"+ str(BICModeloOriginal) )
+
+
+
+##### MODELO K2##########################
+
+scoring_method = K2Score(data=data_cardiaca_prueba)
+#print(modeloK2p)
+#print(modeloK2p.nodes())
+#print(modeloK2p.edges())
+k2Modelok2= scoring_method.score(modeloK2p)
+print("K2 modelo k2:"+ str(k2Modelok2) )
+
+scoring_method = BicScore(data=data_cardiaca_prueba)
+BICModelok2= scoring_method.score(modeloK2p)
+print("Bic modelo k2"+ str(BICModelok2) )
+
+
+##### MODELO BIC##########################
+
+scoring_method = K2Score(data=data_cardiaca_prueba)
+#print(modeloBICp)
+#print(modeloBICp.nodes())
+#print(modeloBICp.edges())
+k2ModeloBIC= scoring_method.score(modeloBICp)
+print("K2 modelo BIC:"+ str(k2ModeloBIC) )
+
+scoring_method = BicScore(data=data_cardiaca_prueba)
+BICModeloBIC= scoring_method.score(modeloBICp)
+print("BIC modelo BIC:"+ str(BICModeloBIC) )
 
