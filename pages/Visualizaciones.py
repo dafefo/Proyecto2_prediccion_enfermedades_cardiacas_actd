@@ -1,7 +1,9 @@
 import pandas as pd
-import plotly.express as px
-from dash import Dash, dcc, html
 import numpy as np
+import dash
+from dash import dcc, html, callback, Output, Input
+import plotly.express as px
+import dash_bootstrap_components as dbc
 
 
 #Apertura de los datos Daniel
@@ -9,7 +11,7 @@ import numpy as np
 
 #Apertura datos Christer
 #data_cardiaca = pd.read_csv("cleveland_data.csv")
-data_cardiaca = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data', header=None)
+"""data_cardiaca = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data', header=None)
 data_cardiaca.columns = [
     'age', 'sex', 'cp', 'trestbps', 'chol','fbs', 'restecg','thalac', 'exang', 'oldpeak', 'slope',
     'ca', 'thal', 'num'
@@ -67,9 +69,32 @@ data_cardiaca.insert(6,"chol_group",chol_discrt)
 #Se crea una varibale categorica para la presion sanguinea en reposo
 trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"])
 data_cardiaca.insert(5,"trestbps_group", trestbps_discrt)
+print(data_cardiaca)"""
+
+#Abrir los datos desde RDS
+import psycopg2
+engine = psycopg2.connect(
+    dbname="datacardiaca",
+    user="danielchrister",
+    password="danielactd",
+    host="danielchrister.cpucxidqdwyr.us-east-1.rds.amazonaws.com",
+    port='5432'
+)
+cursor = engine.cursor()
+query = """
+SELECT *
+FROM datacardiaca
+;"""
+cursor.execute(query)
+result = cursor.fetchall()
+result
+import pandas as pd
+df = pd.read_sql(query, engine)
+df.drop(df.tail(594).index,inplace=True)
+df["cp"]= pd.cut(df["cp"], bins=[0,1,2,3,4],labels=["Angina normal","Angina atipica","No angina","Asintomatico"])
 
 #Cp
-CP = px.histogram(data_cardiaca, x = "cp", color = "cardiac", text_auto='.1f', barnorm= "percent",
+CP = px.histogram(df, x = "cp", color = "cardiac", text_auto='.1f', barnorm= "percent",
                    category_orders={"cp":["Angina normal","Angina atipica","No angina","Asintomatico"],
                                     "cardiac":[True,False]},
                     color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
@@ -78,11 +103,11 @@ CP.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   xaxis_title = "Dolor de Pecho",
                   yaxis_title = "Conteo(Porcentaje)",
                   title_x = 0.5,
-                  font = dict(size = 14))
+                  font = dict(size = 20))
 CP.update_layout({'plot_bgcolor': 'white'})
 #Presion arterial
-PA = px.histogram(data_cardiaca, x = "trestbps_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
-                   category_orders={"trestbps_group":["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"],
+PA = px.histogram(df, x = "trestbps_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
+                   category_orders={"trestbps_group":["normal","elevada","presionarterialnivel1","presionarterialnivel2","crisis"],
                                     "cardiac":[True,False]},
                                     color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
                                     title="Relación presión arterial en reposo y enfermedad cardiaca")
@@ -93,8 +118,8 @@ PA.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   font = dict(size = 14))
 PA.update_layout({'plot_bgcolor': 'white'})
 #Colesterol
-Cole = px.histogram(data_cardiaca, x = "chol_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
-                   category_orders={"chol_group":["normal","alto","muy alto"],
+Cole = px.histogram(df, x = "chol_group", color = "cardiac", text_auto='.1f', barnorm= "percent",
+                   category_orders={"chol_group":["normal","alto","muyalto"],
                                     "cardiac":[True,False]},
                     color_discrete_map={True:"#E7C22C", False:"#BAB0AC"},
                     title="Relación nivel de colesterol y enfermedad cardiaca")
@@ -105,11 +130,53 @@ Cole.update_layout(legend_title = "Sufre de enfermedad cardiaca",
                   font = dict(size = 14))
 Cole.update_layout({'plot_bgcolor': 'white'})
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = "Arteriopatía Coronaria. Una enfermedad Cardiaca"
+dash.register_page(__name__, path='/', name='Analisis Descriptivo') # '/' is home page
 
-app.layout = html.Div(
+# page 1 data
+
+layout = html.Div(
+    [
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dcc.Dropdown(options=[{"label":"Dolor de pecho", "value":"chest"},
+                                              {"label":"Presion arterial", "value":"trest"},
+                                              {"label":"Nivel de colesterol", "value":"chol"}],
+                                     id='fig-choice')
+                    ], xs=10, sm=10, md=8, lg=4, xl=4, xxl=4
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dcc.Graph(id='line-fig',
+                                  figure=CP)
+                    ], width=12
+                )
+            ]
+        )
+    ]
+)
+
+@callback(
+    Output('line-fig', 'figure'),
+    Input('fig-choice', 'value')
+)
+def update_graph(value):
+    if value == None:
+        fig = CP
+    elif value == "chest":
+        fig = CP
+    elif value == "trest":
+        fig = PA
+    elif value == "chol":
+        fig = Cole
+    return fig
+"""
+layout = html.Div(
     html.Div(
     children=[
         html.Div(
@@ -131,7 +198,4 @@ app.layout = html.Div(
 
 if __name__ == "__main__":
     app.run_server(debug=True)
-        
-
-
-
+"""

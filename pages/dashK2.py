@@ -1,13 +1,4 @@
-
-
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 10 19:45:57 2023
-
-@author: baka
-"""
-
-
 import numpy as np 
 import pandas as pd
 import plotly.express as px
@@ -25,7 +16,7 @@ from pgmpy.readwrite import XMLBIFReader
 #reader = BIFReader("C:/Users/baka/Desktop/analitica proyecto 2 local/modeloBIC.bif")
 #modelo = reader.get_model()
 
-reader = XMLBIFReader("modeloK2.xml")
+reader = XMLBIFReader("Analitica computacional/Proyecto 2 Enfermedades cardiacas/modeloK2.xml")
 model = reader.get_model()
 
 #Apertura datos Christer
@@ -68,9 +59,6 @@ data_cardiaca.insert(6,"chol_group",chol_discrt)
 trestbps_discrt = pd.cut(data_cardiaca["trestbps"],bins=[0,119,129,139,179,210], labels=["normal","elevada","presion arterial nivel 1","presion arterial nivel 2","crisis"])
 data_cardiaca.insert(5,"trestbps_group", trestbps_discrt)
 
-
-
-
 #Se quitan algunas de las variables que ya no vamos a usar para que no generen nodos adicionales en el modelo
 data_cardiaca = data_cardiaca.drop('age', axis=1)
 data_cardiaca = data_cardiaca.drop('trestbps', axis=1)
@@ -78,8 +66,6 @@ data_cardiaca = data_cardiaca.drop('chol', axis=1)
 data_cardiaca = data_cardiaca.drop('num', axis=1)
 data_cardiaca = data_cardiaca.drop('thalac', axis=1)
 data_cardiaca = data_cardiaca.drop('oldpeak', axis=1)
-
-
 
 print(data_cardiaca.head())
 print(data_cardiaca.columns)
@@ -112,9 +98,6 @@ valid_values_slope = model.get_cpds("slope").state_names["slope"]
 valid_values_thal = model.get_cpds("thal").state_names["thal"]
 valid_values_trestbps = model.get_cpds("trestbps_group").state_names["trestbps_group"]
 
-
-
-
 print(posterior_p)
 print(model.nodes)
 ######################Función###########################################
@@ -132,17 +115,16 @@ def calcularProbabilidad(selected_values_list):
     probabilidadEstimada=infer.query(["cardiac"], evidence={"sex": selected_values_list[1], "age_group":selected_values_list[0], "chol_group": selected_values_list[4], "fbs": selected_values_list[5], "exang": selected_values_list[7], "cp":selected_values_list[2] , "trestbps_group":selected_values_list[3] , "restecg":selected_values_list[6], "slope":selected_values_list[8] , "ca":selected_values_list[9] , "thal":selected_values_list[10]})
     return probabilidadEstimada
 
-
-
 import numpy as np 
 import pandas as pd
 import plotly.express as px
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import dash_daq as daq
+from dash import dcc, html, callback, Output, Input, State
+
 
 # Load the Cleveland Heart Disease dataset
 #df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data', header=None)
@@ -160,15 +142,12 @@ dropdown_vars = [col for col in df.columns if col not in ['index','age','rtrestb
 
 
 # Define the app layout
-app = dash.Dash(__name__)
+dash.register_page(__name__, name='Predicción')
 colors = {
     'background': '#111111',
     'text': '#7FDBFF'
 }
-app.layout = html.Div([
-    html.H1(children = "Enfermedad Cardiaca: Arteriopatía Coronaria", style={"textAling":"center"}),
-    html.H3(children = "Complete los datos del paciente y los resultados a los distintos examenes que se haya realizado. Una vez termine debe dar clic en el boton submit. Esto permitirá saber la probabilidad de que el paciente sufra un problema de corazón, especificamente una arteriopatía coronaria.")
-]+[
+layout = html.Div([
     html.Div([
         html.Label(f'Seleccione un valor para {var}'),
         dcc.Dropdown(
@@ -251,7 +230,7 @@ app.layout = html.Div([
 ])
 
 # Define the app callback
-@app.callback(
+@callback(
     Output('my_gauge', 'value'),
     [Input('submit-button', 'n_clicks')],
     [State(f'{var}-dropdown', 'value') for var in dropdown_vars]
@@ -265,7 +244,3 @@ def update_output(n_clicks, *selected_values):
         probs=calcularProbabilidad(selected_values_list)
         value = probs.values[1]
         return value
-
-# Run the app
-if __name__ == '__main__':
-    app.run_server(debug=False)
